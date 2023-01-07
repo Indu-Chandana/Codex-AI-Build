@@ -23,7 +23,7 @@ function typeText(element, text) {
 
   let interval = setInterval(() => {
     if (index < text.length) {  // we are still typing.
-      element.innerHTML += text.chartAt(index) // get character under a specific index in the text that AI is going to return
+      element.innerHTML += text.charAt(index) // get character under a specific index in the text that AI is going to return
       index++;
     } else {
       clearInterval(interval)
@@ -47,6 +47,7 @@ function chatStripe(isAi, value, uniqueId) {
         <div class="profile">
             <img
             src="${isAi ? bot : user}"
+            alt="${isAi ? `bot` : `user`}"
             />
         </div>
         <div class="message" id=${uniqueId}>${value}</div>
@@ -63,4 +64,46 @@ const handleSubmit = async (e) => {
    // user's chatStripe
    chatContainer.innerHTML += chatStripe(false, data.get('prompt'));
    form.reset();
+
+   // bot's chatstripe
+   const uniqueId = generateUniqueId();
+   chatContainer.innerHTML += chatStripe(true, " ", uniqueId);
+
+   chatContainer.scrollTop = chatContainer.scrollHeight;
+
+   const messageDiv = document.getElementById(uniqueId);
+   loarder(messageDiv);
+
+   // fetch data from server -> bot's response
+   const response = await fetch('http://localhost:5000', {
+    method: 'POST',
+    headers: {
+      'content-Type' : 'application/json'
+    },
+    body: JSON.stringify({
+      prompt: data.get('prompt')
+    })
+   })
+
+   clearInterval(loadInterval);
+   messageDiv.innerHTML = '';
+
+   if (response.ok) {
+    const data = await response.json();
+    const parsedData = data.bot.trim();
+
+    typeText(messageDiv, parsedData)
+   } else {
+    const err = await response.text();
+
+    messageDiv.innerHTML = "Something went wrong";
+    alert(err)
+   }
 }
+
+form.addEventListener('submit', handleSubmit);
+form.addEventListener('keyup', (e) => {
+  if(e.keyCode === 13) {
+    handleSubmit(e);
+  }
+})
