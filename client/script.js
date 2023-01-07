@@ -74,7 +74,7 @@ const handleSubmit = async (e) => {
    const messageDiv = document.getElementById(uniqueId);
    loarder(messageDiv);
 
-   // fetch data from server -> bot's response
+   // fetch data from server -> bot's response x
    const response = await fetch('https://codex-0mj1.onrender.com/', {
     method: 'POST',
     headers: {
